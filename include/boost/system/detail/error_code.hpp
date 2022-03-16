@@ -157,7 +157,9 @@ public:
 
 #if defined(BOOST_SYSTEM_HAS_SYSTEM_ERROR)
 
-    error_code( std::error_code const& ec ) BOOST_NOEXCEPT:
+#undef new
+
+	error_code( std::error_code const& ec ) BOOST_NOEXCEPT:
         lc_flags_( 1 )
     {
         ::new( d2_ ) std::error_code( ec );
@@ -596,7 +598,9 @@ public:
         return const_cast<error_code const&>( *this );
     }
 
-    template<class T,
+#undef new
+
+	template<class T,
       class E = typename detail::enable_if<detail::is_same<T, std::error_code>::value>::type>
       operator T& ()
     {
