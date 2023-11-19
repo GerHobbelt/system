@@ -1056,13 +1056,13 @@ template<class T, class E, class F,
 >
 result<U, E> operator&( result<T, E> const& r, F&& f )
 {
-    if( r )
+    if( r.has_error() )
     {
-        return std::forward<F>( f )( *r );
+        return r.error();
     }
     else
     {
-        return r.error();
+        return std::forward<F>( f )( *r );
     }
 }
 
@@ -1072,13 +1072,13 @@ template<class T, class E, class F,
 >
 result<U, E> operator&( result<T, E>&& r, F&& f )
 {
-    if( r )
+    if( r.has_error() )
     {
-        return std::forward<F>( f )( *std::move( r ) );
+        return r.error();
     }
     else
     {
-        return r.error();
+        return std::forward<F>( f )( *std::move( r ) );
     }
 }
 
@@ -1091,13 +1091,13 @@ template<class T, class E, class F,
 >
 U operator&( result<T, E> const& r, F&& f )
 {
-    if( r )
+    if( r.has_error() )
     {
-        return std::forward<F>( f )( *r );
+        return r.error();
     }
     else
     {
-        return r.error();
+        return std::forward<F>( f )( *r );
     }
 }
 
@@ -1108,14 +1108,51 @@ template<class T, class E, class F,
 >
 U operator&( result<T, E>&& r, F&& f )
 {
-    if( r )
-    {
-        return std::forward<F>( f )( *std::move( r ) );
-    }
-    else
+    if( r.has_error() )
     {
         return r.error();
     }
+    else
+    {
+        return std::forward<F>( f )( *std::move( r ) );
+    }
+}
+
+// operator&=
+
+// result &= unary-returning-value
+
+template<class T, class E, class F,
+    class U = decltype( std::declval<F>()( std::declval<T>() ) ),
+    class En1 = typename std::enable_if<!detail::is_result<U>::value>::type,
+    class En2 = typename std::enable_if<detail::is_value_convertible_to<U, T>::value>::type
+>
+result<T, E>& operator&=( result<T, E>& r, F&& f )
+{
+    if( r )
+    {
+        r = std::forward<F>( f )( *std::move( r ) );
+    }
+
+    return r;
+}
+
+// result &= unary-returning-result
+
+template<class T, class E, class F,
+    class U = decltype( std::declval<F>()( std::declval<T>() ) ),
+    class En1 = typename std::enable_if<detail::is_result<U>::value>::type,
+    class En2 = typename std::enable_if<detail::is_value_convertible_to<typename U::value_type, T>::value>::type,
+    class En3 = typename std::enable_if<std::is_convertible<typename U::error_type, E>::value>::type
+>
+result<T, E>& operator&=( result<T, E>& r, F&& f )
+{
+    if( r )
+    {
+        r = std::forward<F>( f )( *std::move( r ) );
+    }
+
+    return r;
 }
 
 } // namespace system
