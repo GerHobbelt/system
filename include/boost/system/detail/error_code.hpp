@@ -147,6 +147,8 @@ public:
         }
     }
 
+#undef new
+
     error_code( std::error_code const& ec ) noexcept:
         d1_(), lc_flags_( 0 )
     {
@@ -521,7 +523,9 @@ public:
         return const_cast<error_code const&>( *this );
     }
 
-    template<class T,
+#undef new
+
+	template<class T,
       class E = typename detail::enable_if<detail::is_same<T, std::error_code>::value>::type>
       operator T& ()
     {
