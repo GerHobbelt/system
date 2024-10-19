@@ -82,7 +82,7 @@ private:
 
 protected:
 
-    ~error_category() = default;
+    virtual ~error_category() = default;
 
     constexpr error_category() noexcept: id_( 0 ), stdcat_(), sc_init_()
     {
