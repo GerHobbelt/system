@@ -1,7 +1,7 @@
 #ifndef BOOST_SYSTEM_RESULT_HPP_INCLUDED
 #define BOOST_SYSTEM_RESULT_HPP_INCLUDED
 
-// Copyright 2017, 2021, 2022 Peter Dimov.
+// Copyright 2017, 2021-2025 Peter Dimov.
 // Distributed under the Boost Software License, Version 1.0.
 // https://www.boost.org/LICENSE_1_0.txt
 
@@ -9,6 +9,7 @@
 #include <boost/system/system_error.hpp>
 #include <boost/system/detail/error_code.hpp>
 #include <boost/system/detail/error_category_impl.hpp>
+#include <boost/system/detail/invoke.hpp>
 #include <boost/variant2/variant.hpp>
 #include <boost/throw_exception.hpp>
 #include <boost/assert/source_location.hpp>
@@ -919,9 +920,10 @@ template<class T, class E> struct is_result< result<T, E> >: std::true_type {};
 // result | value
 
 template<class T, class E, class U,
-    class En = typename std::enable_if<detail::is_value_convertible_to<U, T>::value>::type
+    class En = typename std::enable_if<std::is_convertible<U, typename std::decay<T>::type>::value>::type
 >
-T operator|( result<T, E> const& r, U&& u )
+typename std::decay<T>::type
+operator|( result<T, E> const& r, U&& u )
 {
     if( r )
     {
@@ -934,9 +936,10 @@ T operator|( result<T, E> const& r, U&& u )
 }
 
 template<class T, class E, class U,
-    class En = typename std::enable_if<detail::is_value_convertible_to<U, T>::value>::type
+    class En = typename std::enable_if<std::is_convertible<U, typename std::decay<T>::type>::value>::type
 >
-T operator|( result<T, E>&& r, U&& u )
+typename std::decay<T>::type
+operator|( result<T, E>&& r, U&& u )
 {
     if( r )
     {
@@ -975,6 +978,26 @@ T operator|( result<T, E>&& r, F&& f )
     if( r )
     {
         return *std::move( r );
+    }
+    else
+    {
+        return std::forward<F>( f )();
+    }
+}
+
+template<class T, class E, class F,
+    class U = decltype( std::declval<F>()() ),
+    class En = typename std::enable_if<
+        std::is_convertible<U, typename std::decay<T>::type>::value &&
+        !detail::is_value_convertible_to<U, T&>::value
+    >::type
+>
+typename std::decay<T>::type
+operator|( result<T&, E> const& r, F&& f )
+{
+    if( r )
+    {
+        return *r;
     }
     else
     {
@@ -1108,7 +1131,24 @@ result<T, E>& operator|=( result<T, E>& r, F&& f )
 // result & unary-returning-value
 
 template<class T, class E, class F,
-    class U = decltype( std::declval<F>()( std::declval<T const&>() ) ),
+    class U = detail::invoke_result_t<F, T&>,
+    class En1 = typename std::enable_if<!detail::is_result<U>::value>::type,
+    class En2 = typename std::enable_if<!std::is_void<U>::value>::type
+>
+result<U, E> operator&( result<T, E>& r, F&& f )
+{
+    if( r.has_error() )
+    {
+        return r.error();
+    }
+    else
+    {
+        return detail::invoke( std::forward<F>( f ), *r );
+    }
+}
+
+template<class T, class E, class F,
+    class U = detail::invoke_result_t<F, T const&>,
     class En1 = typename std::enable_if<!detail::is_result<U>::value>::type,
     class En2 = typename std::enable_if<!std::is_void<U>::value>::type
 >
@@ -1120,12 +1160,12 @@ result<U, E> operator&( result<T, E> const& r, F&& f )
     }
     else
     {
-        return std::forward<F>( f )( *r );
+        return detail::invoke( std::forward<F>( f ), *r );
     }
 }
 
 template<class T, class E, class F,
-    class U = decltype( std::declval<F>()( std::declval<T>() ) ),
+    class U = typename std::decay< detail::invoke_result_t<F, T> >::type,
     class En1 = typename std::enable_if<!detail::is_result<U>::value>::type,
     class En2 = typename std::enable_if<!std::is_void<U>::value>::type
 >
@@ -1137,12 +1177,29 @@ result<U, E> operator&( result<T, E>&& r, F&& f )
     }
     else
     {
-        return std::forward<F>( f )( *std::move( r ) );
+        return detail::invoke( std::forward<F>( f ), *std::move( r ) );
     }
 }
 
 template<class T, class E, class F,
-    class U = decltype( std::declval<F>()( std::declval<T const&>() ) ),
+    class U = detail::invoke_result_t<F, T&>,
+    class En1 = typename std::enable_if<!detail::is_result<U>::value>::type,
+    class En2 = typename std::enable_if<!std::is_void<U>::value>::type
+>
+result<U, E> operator&( result<T&, E>&& r, F&& f )
+{
+    if( r.has_error() )
+    {
+        return r.error();
+    }
+    else
+    {
+        return detail::invoke( std::forward<F>( f ), *std::move( r ) );
+    }
+}
+
+template<class T, class E, class F,
+    class U = detail::invoke_result_t<F, T const&>,
     class En = typename std::enable_if<std::is_void<U>::value>::type
 >
 result<U, E> operator&( result<T, E> const& r, F&& f )
@@ -1153,13 +1210,13 @@ result<U, E> operator&( result<T, E> const& r, F&& f )
     }
     else
     {
-        std::forward<F>( f )( *r );
+        detail::invoke( std::forward<F>( f ), *r );
         return {};
     }
 }
 
 template<class T, class E, class F,
-    class U = decltype( std::declval<F>()( std::declval<T>() ) ),
+    class U = detail::invoke_result_t<F, T>,
     class En = typename std::enable_if<std::is_void<U>::value>::type
 >
 result<U, E> operator&( result<T, E>&& r, F&& f )
@@ -1170,7 +1227,7 @@ result<U, E> operator&( result<T, E>&& r, F&& f )
     }
     else
     {
-        std::forward<F>( f )( *std::move( r ) );
+        detail::invoke( std::forward<F>( f ), *std::move( r ) );
         return {};
     }
 }
