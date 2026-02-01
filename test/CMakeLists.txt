@@ -27,7 +27,7 @@ macro(lib name macro)
 
 endmacro()
 
-set(BOOST_TEST_LINK_LIBRARIES Boost::system Boost::core Boost::static_assert)
+set(BOOST_TEST_LINK_LIBRARIES Boost::system Boost::config Boost::core)
 
 boost_test(SOURCES quick.cpp)
 
@@ -177,3 +177,4 @@ boost_test(TYPE run SOURCES result_or_eq_fn0v.cpp)
 boost_test(TYPE run SOURCES result_or_eq_fn0r.cpp)
 
 boost_test(TYPE run SOURCES result_and_mfn1v.cpp)
+boost_test(TYPE run SOURCES result_and_mfn1r.cpp)
