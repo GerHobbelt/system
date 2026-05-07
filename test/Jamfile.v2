@@ -213,3 +213,18 @@ run result_or_eq_fn0r.cpp ;
 
 run result_and_mfn1v.cpp ;
 run result_and_mfn1r.cpp ;
+
+compile result_value_construct_cx.cpp ;
+compile result_error_construct_cx.cpp ;
+compile result_error_construct_cx2.cpp ;
+
+run result_unsafe_value_access.cpp ;
+run result_unsafe_value_access2.cpp ;
+
+run unwrap_and_invoke.cpp ;
+run unwrap_and_invoke2.cpp ;
+
+run unwrap_and_construct.cpp ;
+run unwrap_and_construct2.cpp ;
+
+run detail_is_aggregate_test.cpp ;

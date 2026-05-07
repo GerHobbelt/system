@@ -180,3 +180,18 @@ boost_test(TYPE run SOURCES result_or_eq_fn0r.cpp)
 
 boost_test(TYPE run SOURCES result_and_mfn1v.cpp)
 boost_test(TYPE run SOURCES result_and_mfn1r.cpp)
+
+boost_test(TYPE compile SOURCES result_value_construct_cx.cpp)
+boost_test(TYPE compile SOURCES result_error_construct_cx.cpp)
+boost_test(TYPE compile SOURCES result_error_construct_cx2.cpp)
+
+boost_test(TYPE run SOURCES result_unsafe_value_access.cpp)
+boost_test(TYPE run SOURCES result_unsafe_value_access2.cpp)
+
+boost_test(TYPE run SOURCES unwrap_and_invoke.cpp)
+boost_test(TYPE run SOURCES unwrap_and_invoke2.cpp)
+
+boost_test(TYPE run SOURCES unwrap_and_construct.cpp)
+boost_test(TYPE run SOURCES unwrap_and_construct2.cpp)
+
+boost_test(TYPE run SOURCES detail_is_aggregate_test.cpp)
