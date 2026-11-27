@@ -67,7 +67,7 @@ inline std::string interop_error_category::message( int ev ) const
 
 // interop_category()
 
-#if defined(BOOST_SYSTEM_HAS_CONSTEXPR)
+#if defined(BOOST_SYSTEM_HAS_CONSTEXPR) && !defined(_MSC_VER) // hacky fix for error C2131: expression did not evaluate to a constant
 
 template<class T> struct BOOST_SYMBOL_VISIBLE interop_cat_holder
 {

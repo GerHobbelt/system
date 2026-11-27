@@ -69,7 +69,7 @@ inline std::string generic_error_category::message( int ev ) const
 
 // generic_category()
 
-#if defined(BOOST_SYSTEM_HAS_CONSTEXPR)
+#if defined(BOOST_SYSTEM_HAS_CONSTEXPR) && !defined(_MSC_VER) // hacky fix for error C2131: expression did not evaluate to a constant
 
 namespace detail
 {
